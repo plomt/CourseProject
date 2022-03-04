@@ -11,82 +11,8 @@ from PyQt5.QtGui import QPainter, QColor, QSyntaxHighlighter, QTextCharFormat, Q
 from PyQt5.QtCore import QRect, Qt, pyqtSignal, QRegExp
 import subprocess
 
-lineBarColor = QColor(53, 53, 53)
+# lineBarColor = QColor(53, 53, 53)
 
-
-# class PlainTextEdit(QPlainTextEdit):
-#     commandSignal = pyqtSignal(str)
-#     commandZPressed = pyqtSignal(str)
-
-#     def __init__(self, parent=None, movable=False):
-#         super().__init__(parent)
-
-#         self.name = "[" + str(getpass.getuser()) + "@" + str(socket.gethostname()) + "]" + "  ~" + str(os.getcwd()) + " >$ "
-        
-#         self.appendPlainText(self.name)
-#         self.movable = movable
-#         self.parent = parent        
-#         self.setStyleSheet("QPlainTextEdit{background-color: black; color: white; padding: 0;}")
-
-#         self.commands = []  # This is a list to track what commands the user has used so we could display them when
-#         # up arrow key is pressed
-#         self.tracker = 0
-#         self.setStyleSheet("QPlainTextEdit{background-color: #212121; color: white; padding: 8;}")
-
-#         self.font = QFont()
-#         self.font.setFamily("Iosevka")
-#         self.font.setPointSize(12)
-#         self.setFont(self.font)
-#         self.document_file = self.document()
-#         self.document_file.setDocumentMargin(-1)
-
-#     def center(self):
-#         qr = self.frameGeometry()
-#         cp = QDesktopWidget().availableGeometry().center()
-#         qr.moveCenter(cp)
-#         self.move(qr.topLeft())
-#     def mousePressEvent(self, event):
-#         if self.movable is True:
-#             self.parent.mousePressEvent(event)
-#     def mouseMoveEvent(self, event):
-#         if self.movable is True:
-#             self.parent.mouseMoveEvent(event)
-
-#     def keyPressEvent(self, e):
-#         cursor = self.textCursor()
-
-#         if self.parent:
-            
-#             if (e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_A):
-#                 return
-#             if (e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_Z):
-#                 self.commandZPressed.emit("True")
-#                 return
-#             if e.key() == 16777220:  # This is the ENTER key
-#                 text = self.textCursor().block().text()
-#                 #command_list = command.split()
-#                 #print(command)
-
-#                 if text == self.name + text.replace(self.name, "") and text.replace(self.name, "") != "":  # This is to prevent adding in commands that were not meant to be added in
-#                     self.commands.append(text.replace(self.name, ""))
-#                 self.commandSignal.emit(text)
-#                 self.appendPlainText(self.name)
-
-#             if e.key() == 16777219:
-
-#                 if cursor.positionInBlock() <= len(self.name):
-#                     return
-                    
-
-#                 else:
-#                     cursor.deleteChar()    
-#                 # self.parent.keyPressEvent(e)
-
-#                     cursor.deleteChar()
-
-#             super().keyPressEvent(e)
-
-#         e.accept() 
 
 class PlainTextEdit(QPlainTextEdit):
     commandSignal = pyqtSignal(str)
@@ -200,17 +126,18 @@ class Terminal(QWidget):
 
     def __init__(self, movable=False):
         super().__init__()
-        self.setWindowFlags(
-            Qt.Widget |
-            Qt.WindowCloseButtonHint |
-            Qt.WindowStaysOnTopHint |
-            Qt.FramelessWindowHint
-        )
+        # self.setWindowFlags(
+        #     Qt.Widget |
+        #     Qt.WindowCloseButtonHint |
+        #     Qt.WindowStaysOnTopHint |
+        #     Qt.FramelessWindowHint
+        # )
         
         self.movable = movable
         self.process = QProcess(self)
         self.editor = PlainTextEdit(self, self.movable)
-        self.layout = QHBoxLayout()
+        # self.layout = QHBoxLayout()
+        self.layout = QVBoxLayout()
         self.name = None
         self.highlighter = name_highlighter(self.editor.document(), str(getpass.getuser()), str(socket.gethostname()), str(os.getcwd()))
         self.layout.addWidget(self.editor)
@@ -219,8 +146,8 @@ class Terminal(QWidget):
         self.process.readyReadStandardError.connect(self.onReadyReadStandardError)
         self.process.readyReadStandardOutput.connect(self.onReadyReadStandardOutput)
         self.setLayout(self.layout)
-        self.setFixedWidth(600)
-        self.setFixedHeight(300)
+        self.window_width, self.window_height = 1000, 600
+        self.setMinimumSize(self.window_width, self.window_height)
         self.setStyleSheet("QWidget {background-color:invisible;}")
         self.show()
         #self.showMaximized() # comment this if you want to embed this widget
@@ -261,18 +188,6 @@ class Terminal(QWidget):
         
         """Split a command into list so command echo hi would appear as ['echo', 'hi']"""
         real_command = command.replace(self.editor.name, "")
-        # cmd = self.lineEdit.text()
-        # result = subprocess.check_output(cmd, shell=True, cwd=self.working_dir)
-        # result = subprocess.getoutput(real_command)
-        # print(result)
-        # self.editor.appendPlainText(str(result))
-
-        # print(real_command)#debug
-        # print(self)
-        # self.run(real_command)
-        # self.process.start(real_command)
-        # result = self.onReadyReadStandardOutput()
-        # print(result)
 
         if command == "True":
             if self.process.state() == 2:
@@ -321,14 +236,7 @@ class Terminal(QWidget):
             # result = subprocess.getoutput(real_command)
             output = subprocess.Popen(real_command, stdout=subprocess.PIPE,shell=True)
             result=output.communicate()[0].decode('cp866')
-            # result=output.communicate()
-            # print(result[0].decode('cp866'))
-            print(result)
-            # print(sys.stdout.encoding)
-            # print(result.decode('cp866'))
             self.editor.appendPlainText(str(result))
-            # self.run(real_command)
-            # self.onReadyReadStandardOutput()
         
 
         else:
