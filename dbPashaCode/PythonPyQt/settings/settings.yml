@@ -1,0 +1,10 @@
+POSTGRES:
+    CREDENTIALS_PATH: '\settings\pstgrs.yml'
+
+TABLENAMES:
+    message: 'project_pyqt.message'
+    seance: 'project_pyqt.seance'
+
+PATHS:
+    SCHEMA_PATH: '\sql_scripts\ddl\schema'
+    TABLE_PATH: '\sql_scripts\ddl\table'
