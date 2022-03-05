@@ -1,4 +1,5 @@
 import os
+import sys
 from io import StringIO
 from time import time
 from functools import wraps
@@ -9,10 +10,7 @@ import psycopg2
 from psycopg2 import extras
 from psycopg2 import OperationalError
 
-from logging_module import get_logger
-
-logger = get_logger("utils logger")
-CURRENT_DIR = r"C:\Users\pavel\PycharmProjects\PythonPyQt"
+CURRENT_DIR = os.getcwd()
 
 
 def get_yaml_conf(settings_filename):
@@ -43,9 +41,15 @@ class Configuration(object):
             settings = get_yaml_conf(os.environ['CONFIG_PATH'])
             Configuration._instance.store_dict(settings)
             if "POSTGRES" in settings.keys():
-                if "CREDENTIALS_PATH" in settings["POSTGRES"]:
-                    account_settings = get_yaml_conf(CURRENT_DIR + settings["POSTGRES"]["CREDENTIALS_PATH"])
-                    Configuration._instance._d["POSTGRES"].update(account_settings)
+                if sys.platform == "win32":
+                    if "CREDENTIALS_PATH_WIN32" in settings["POSTGRES"]:
+                        account_settings = get_yaml_conf(CURRENT_DIR + settings["POSTGRES"]["CREDENTIALS_PATH_WIN32"])
+                        Configuration._instance._d["POSTGRES"].update(account_settings)
+                    else:
+                        if "CREDENTIALS_PATH_LINUX" in settings["POSTGRES"]:
+                            account_settings = get_yaml_conf(
+                                CURRENT_DIR + settings["POSTGRES"]["CREDENTIALS_PATH_LINUX"])
+                            Configuration._instance._d["POSTGRES"].update(account_settings)
         return class_._instance
 
     def store_dict(self, d):
@@ -72,7 +76,7 @@ def get_postgres_connection():
     database = postgres_conf['database']
     password = postgres_conf['password']
 
-    logger.info(
+    print(
         "Postgres connection: HOSTNAME {}, LOGIN {}, DATABASE {}".format(hostname, login, database))
 
     try:
@@ -83,7 +87,7 @@ def get_postgres_connection():
             password=password,
         )
     except Exception as e:
-        logger.exception("Something gone wrong", e)
+        print("Something gone wrong", e)
         raise
     return conn
 
@@ -102,13 +106,13 @@ def load_from_postgres_query(query):
     try:
         ans = pd.read_sql(query, conn)
     except pd.io.sql.DatabaseError as e:
-         logger.exception(e)
+        print(e)
     return ans
 
 
 @timing
 def load_to_postgres(conn, df, table):
-    logger.info("start copy dataframe to Postgres {}".format(table))
+    print("start copy dataframe to Postgres {}".format(table))
     buffer = StringIO()
     df.to_csv(buffer, header=False)
     buffer.seek(0)
@@ -130,10 +134,10 @@ def load_to_postgres(conn, df, table):
         conn.commit()
         cur.close()
     except (Exception, psycopg2.DatabaseError) as e:
-        logger.exception("Something gone wrong", e)
+        print("Something gone wrong", e)
         conn.rollback()
         cur.close()
-    logger.info("finish copy dataframe to Postgres {}".format(table))
+    print("finish copy dataframe to Postgres {}".format(table))
     cur.close()
 
 
@@ -145,7 +149,7 @@ def is_table_exists(tablename: str):
     try:
         pd.read_sql(query, conn)
     except pd.io.sql.DatabaseError as e:
-         logger.exception(e)
+         print(e)
          return False
     finally:
         conn.close()
@@ -158,9 +162,9 @@ def manipulation_database(script_filename: str):
     cursor = con.cursor()
     try:
         cursor.execute(open(script_filename, "r").read())
-        logger.info("{}".format(script_filename))
+        print("{}".format(script_filename))
     except OperationalError as e:
-        logger.exception("Something gone wrong", e)
+        print("Something gone wrong", e)
 
 
 def get_data_function(nuclide: int, tablename: str):

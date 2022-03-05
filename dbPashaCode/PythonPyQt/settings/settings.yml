@@ -1,10 +1,15 @@
 POSTGRES:
-    CREDENTIALS_PATH: '\settings\pstgrs.yml'
+    CREDENTIALS_PATH_WIN32: '\settings\pstgrs.yml'
+
+    CREDENTIALS_PATH_LINUX: '/settings/pstgrs.yml'
 
 TABLENAMES:
     message: 'project_pyqt.message'
     seance: 'project_pyqt.seance'
 
 PATHS:
-    SCHEMA_PATH: '\sql_scripts\ddl\schema'
-    TABLE_PATH: '\sql_scripts\ddl\table'
+    SCHEMA_PATH_WIN32: '\sql_scripts\ddl\schema'
+    TABLE_PATH_WIN32: '\sql_scripts\ddl\table'
+
+    SCHEMA_PATH_LINUX: '/sql_scripts/ddl/schema'
+    TABLE_PATH_LINUX: '/sql_scripts/ddl/table'
