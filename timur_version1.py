@@ -1,3 +1,4 @@
+from re import S
 import sys
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -10,6 +11,7 @@ from PyQt5.QtWidgets import QWidget, QLineEdit
 from PyQt5.QtGui import QPainter, QColor, QSyntaxHighlighter, QTextCharFormat, QColor, QFont
 from PyQt5.QtCore import QRect, Qt, pyqtSignal, QRegExp
 import subprocess
+import traceback
 
 # lineBarColor = QColor(53, 53, 53)
 
@@ -38,6 +40,8 @@ class PlainTextEdit(QPlainTextEdit):
         self.document_file = self.document()
         self.previousCommandLength = 0
         self.document_file.setDocumentMargin(-1)
+
+        
 
     def center(self):
         qr = self.frameGeometry()
@@ -148,8 +152,9 @@ class Terminal(QWidget):
         self.setLayout(self.layout)
         self.window_width, self.window_height = 1000, 600
         self.setMinimumSize(self.window_width, self.window_height)
-        self.setStyleSheet("QWidget {background-color:invisible;}")
-        self.show()
+
+        # self.setStyleSheet("QWidget {background-color:invisible;}")
+        # self.show()
         #self.showMaximized() # comment this if you want to embed this widget
 
     def center(self):
@@ -208,7 +213,8 @@ class Terminal(QWidget):
         elif command_list is not None and command_list[0] == "echo":
             self.editor.appendPlainText(" ".join(command_list[1:]))
         elif real_command == "exit":
-            qApp.exit()
+            self.close()
+            # qApp.exit()
 
         elif command_list is not None and command_list[0] == "cd" and len(command_list) > 1:
             try:
@@ -233,10 +239,26 @@ class Terminal(QWidget):
             
 
         elif command == self.editor.name + real_command:
-            # result = subprocess.getoutput(real_command)
-            output = subprocess.Popen(real_command, stdout=subprocess.PIPE,shell=True)
-            result=output.communicate()[0].decode('cp866')
-            self.editor.appendPlainText(str(result))
+
+            if real_command[:21] == 'change_color_terminal':
+                # otherFormat = QTextCharFormat()
+                # otherFormat.setForeground(QColor(command_list[1]))
+                str_text = "QPlainTextEdit {background-color: " + command_list[1] + "; color: " + command_list[2] + ";}"
+                self.editor.setStyleSheet(str_text)
+                # self.editor.setStyleSheet("QPlainTextEdit {background-color: black; color: red;}")
+                print('ahahah')
+                print(command_list)
+                
+
+            else:
+                sp = subprocess.Popen(real_command, stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+                out, err = sp.communicate()
+                if out:
+                    self.editor.appendPlainText(str(out.decode('cp866')))
+                if err:
+                    self.editor.appendPlainText(str(err.decode('cp866')))
+
+        
         
 
         else:
@@ -315,8 +337,75 @@ class name_highlighter(QSyntaxHighlighter):
                 index = expression.indexIn(text, index + length)
 
 
-    
-if __name__ == "__main__":
+
+class Example(QMainWindow):
+    # widget = Terminal(True)
+    def __init__(self):
+        super().__init__()
+        # widget = Terminal(True)
+        # self.setCentralWidget(Terminal())
+        
+
+        exitAct = QAction(QIcon('exit.png'), '&Exit', self)
+        exitAct.setShortcut('Ctrl+Q')
+        exitAct.setStatusTip('Exit application')
+        exitAct.triggered.connect(qApp.quit)
+
+        self.toolbar = self.addToolBar('Toolbar')
+        self.widgetAction = QWidgetAction(self.toolbar)
+        self.menu = QMenu(self.toolbar)
+
+        self.action1 = self.menu.addAction('Exit')
+        self.action2 = self.menu.addAction('Start terminal')
+
+        self.widgetAction.setText('menu')
+        self.widgetAction.setMenu(self.menu)
+        self.toolbar.addAction(self.widgetAction)
+
+        self.action1.triggered.connect(self.onAction1)
+        self.action2.triggered.connect(self.onAction2)
+
+        self.widgetAction.triggered.connect(self.triggered)
+        # impAct = QAction( )
+
+
+        self.setGeometry(300, 300, 300, 200)
+        self.setWindowTitle('Simple menu')
+        self.show()
+        
+
+    def triggered(self, e):
+        if self.widgetAction.text() == 'onAction1':
+            self.action1.trigger()
+        elif self.widgetAction.text() == 'onAction2':
+            self.action2.trigger()
+
+    def onAction1(self):
+        self.close()
+
+    def onAction2(self):
+        self.dialog = Terminal()
+        self.dialog.show()
+        # self.widgetAction.setText('onAction2')
+
+
+
+
+
+
+def main():
     app = QApplication(sys.argv)
-    widget = Terminal(True)
+    ex = Example()
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
+    
+# if __name__ == "__main__":
+#     app = QApplication(sys.argv)
+#     widget = Terminal(True)
+#     widget.setWindowTitle('Simple')
+    
+#     widget.show()    
+#     sys.exit(app.exec_())
