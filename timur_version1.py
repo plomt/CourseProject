@@ -136,7 +136,8 @@ class Terminal(QWidget):
         #     Qt.WindowStaysOnTopHint |
         #     Qt.FramelessWindowHint
         # )
-        
+        self.id_seance = 'DEFAULT'
+
         self.movable = movable
         self.process = QProcess(self)
         self.editor = PlainTextEdit(self, self.movable)
@@ -156,6 +157,9 @@ class Terminal(QWidget):
         # self.setStyleSheet("QWidget {background-color:invisible;}")
         # self.show()
         #self.showMaximized() # comment this if you want to embed this widget
+
+    def get_id_seance(self):
+        self.editor.appendPlainText(str(self.id_seance))
 
     def center(self):
         qr = self.frameGeometry()
@@ -254,6 +258,7 @@ class Terminal(QWidget):
                 sp = subprocess.Popen(real_command, stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
                 out, err = sp.communicate()
                 if out:
+                    self.get_id_seance()
                     self.editor.appendPlainText(str(out.decode('cp866')))
                 if err:
                     self.editor.appendPlainText(str(err.decode('cp866')))
@@ -263,6 +268,9 @@ class Terminal(QWidget):
 
         else:
             pass # When the user does a command like ls and then presses enter then it wont read the line where the cursor is on as a command
+
+    def change_user(self):
+        self.setWindowTitle(self.id_seance)
 
 
 class name_highlighter(QSyntaxHighlighter):
@@ -337,19 +345,92 @@ class name_highlighter(QSyntaxHighlighter):
                 index = expression.indexIn(text, index + length)
 
 
+class seance_window(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.text = QTextBrowser()
+
+        arr = ["echo 'alalal' ", "dir", "path"]
+      
+
+        str_arr = '\n'.join(arr)
+
+
+        # self.text.setPlaceholderText("Enter user name")
+        self.text.setText(str_arr)
+
+        grid = QGridLayout()
+        self.setLayout(grid)
+        grid.addWidget(self.text, 0, 1)
+
+
+        # impAct = QAction( )
+
+
+        self.setGeometry(300, 300, 300, 200)
+        self.setWindowTitle('Simple menu')
+        self.show()
+
+
+
+    def change_window(self):
+        self.user_label = QLabel()
+
+        self.user_label.setText(f"lol {self.id_seance}")
+
+    def set_id_seance(self, id_scene):
+        self.id_seance = id_scene
+        self.change_window
+
+
+
+
+
 
 class Example(QMainWindow):
     # widget = Terminal(True)
     def __init__(self):
         super().__init__()
-        # widget = Terminal(True)
-        # self.setCentralWidget(Terminal())
+        
+        self.Login = 'DEFAULT'
+        self.push_login = QPushButton("&login", self)
+
+        # self.leftLayout.addWidget(self.text_edit, 0, 0)
+        self.saltLine = QLineEdit()
+        self.saltLine.setPlaceholderText("Enter user name")
+        self.user_label = QLabel()
+
+        self.user_label.setText(self.Login)
+
+        self.push_login.clicked.connect(self.push_login_scene)
+
+        grid = QGridLayout()
+        widget = QWidget()
+        widget.setLayout(grid)
+
+
+        self.listWidget = QListWidget(self)
+
+        #ПАША ДАЙ МНЕ СПИСОК СЕАНСОВ ИЗ БД
+        arr = ['c++', 'python', 'java', 'scala']
+
+        for i in arr:
+            self.listWidget.addItem(i) 
+
+        #add your widgets
+        self.setCentralWidget(widget)
+        grid.addWidget(self.listWidget, 0, 1)
+        grid.addWidget(self.user_label, 0, 0)
+        grid.addWidget(self.saltLine, 1, 0)
+        grid.addWidget(self.push_login, 1, 1)
+        self.listWidget.itemClicked.connect(self.item_clicked)
         
 
         exitAct = QAction(QIcon('exit.png'), '&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
-        exitAct.triggered.connect(qApp.quit)
+        
 
         self.toolbar = self.addToolBar('Toolbar')
         self.widgetAction = QWidgetAction(self.toolbar)
@@ -361,18 +442,32 @@ class Example(QMainWindow):
         self.widgetAction.setText('menu')
         self.widgetAction.setMenu(self.menu)
         self.toolbar.addAction(self.widgetAction)
-
+        
+        #Конекты:
+        exitAct.triggered.connect(qApp.quit)
         self.action1.triggered.connect(self.onAction1)
         self.action2.triggered.connect(self.onAction2)
-
         self.widgetAction.triggered.connect(self.triggered)
-        # impAct = QAction( )
 
 
         self.setGeometry(300, 300, 300, 200)
         self.setWindowTitle('Simple menu')
         self.show()
+
+    def item_clicked(self):
+        self.dialog = seance_window()
+        self.dialog.show()
+
+    
+    @pyqtSlot()
+    def push_login_scene(self):
+        self.saltLine.setPlaceholderText("e.g. ahahahah")
+        print('PyQt5 button click')
+        print(self.saltLine.text())
         
+        self.Login = self.saltLine.text()
+
+        self.user_label.setText(self.Login)
 
     def triggered(self, e):
         if self.widgetAction.text() == 'onAction1':
@@ -385,18 +480,21 @@ class Example(QMainWindow):
 
     def onAction2(self):
         self.dialog = Terminal()
+        self.dialog.id_seance = self.Login
+        self.dialog.change_user()
         self.dialog.show()
+        
         # self.widgetAction.setText('onAction2')
-
-
-
 
 
 
 def main():
     app = QApplication(sys.argv)
     ex = Example()
+    # ex = seance_window()
+    # ex.show()
     sys.exit(app.exec_())
+
 
 
 if __name__ == '__main__':
