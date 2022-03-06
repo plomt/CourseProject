@@ -1,24 +1,21 @@
 import sys
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
 import os
 import getpass
 import socket
 from pathlib import Path
-from PyQt5.QtWidgets import QWidget, QLineEdit
-from PyQt5.QtGui import QPainter, QColor, QSyntaxHighlighter, QTextCharFormat, QColor, QFont
-from PyQt5.QtCore import QRect, Qt, pyqtSignal, QRegExp, pyqtSlot, QEvent
+
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 
 from PyQt5.QtQml import QQmlApplicationEngine, qmlRegisterType
 import subprocess
-# lineBarColor = QColor(53, 53, 53)
-
 from PyQt5.QtQuick import QQuickPaintedItem, QQuickItem
-
+import random
 
 class MyTerm(QQuickPaintedItem):
 
+    titleChanged = pyqtSignal()
     def __init__(self, parent=None):
         super().__init__(parent)
         self.terminal = Terminal(True)
@@ -34,6 +31,9 @@ class MyTerm(QQuickPaintedItem):
         self.heightChanged.connect(self.updateWidgetSize)
         self.fillColorChanged.connect(self.changeColor)
 
+        self._title = self.terminal.session_id
+        self.titleChanged.emit()
+
     @pyqtProperty(QColor)
     def color(self):
         return self.fillColor()
@@ -41,6 +41,15 @@ class MyTerm(QQuickPaintedItem):
     @color.setter
     def color(self, color):
         self.setFillColor(color)
+
+    @pyqtProperty(str, notify=titleChanged)
+    def title(self):
+        return self._title
+
+    @title.setter
+    def title(self, title):
+        self._title = title
+        self.titleChanged.emit()
 
     def event(self, event):
         if event.type() == QEvent.FocusIn:
@@ -220,19 +229,8 @@ class Terminal(QWidget):
         self.setLayout(self.layout)
         self.window_width, self.window_height = 640, 480
         self.setMinimumSize(self.window_width, self.window_height)
+        self.session_id = "sess" + str(random.randint(1, 1000))
 
-    # self.setStyleSheet("QWidget {background-color:invisible;}")
-
-    # p = self.palette()
-    # p.setColor(QPalette.Background, QColor("#212121"))
-    # p.setColor(QPalette.Window, QColor("#212121"))
-    # p.setColor(QPalette.Base, QColor("#ffffff"))
-    # p.setColor(QPalette.AlternateBase, QColor("#f0f0f0"))
-    # self.setAutoFillBackground(True)
-    # self.setPalette(p)
-
-    # self.show()
-    # self.showMaximized() # comment this if you want to embed this widget
 
     def mousePressEvent(self, event):
         self.oldPos = event.globalPos()
@@ -284,7 +282,7 @@ class Terminal(QWidget):
             self.editor.appendPlainText(" ".join(command_list[1:]))
         elif real_command == "exit":
             self.close()
-            # qApp.exit()
+
 
         elif command_list is not None and command_list[0] == "cd" and len(command_list) > 1:
             try:
@@ -328,7 +326,7 @@ class Terminal(QWidget):
                     self.editor.appendPlainText(str(err.decode('cp866')))
         else:
             pass
-
+        self.editor.ensureCursorVisible()
 
 class name_highlighter(QSyntaxHighlighter):
 
