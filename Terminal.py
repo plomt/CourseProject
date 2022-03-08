@@ -118,13 +118,6 @@ class Terminal(QWidget):
 
     def __init__(self, movable=False):
         super().__init__()
-        # self.setWindowFlags(
-        #     Qt.Widget |
-        #     Qt.WindowCloseButtonHint |
-        #     Qt.WindowStaysOnTopHint |
-        #     Qt.FramelessWindowHint
-        # )
-
         self.movable = movable
         self.process = QProcess(self)
         self.editor = PlainTextEdit(self, self.movable)
@@ -142,7 +135,13 @@ class Terminal(QWidget):
         self.setLayout(self.layout)
         self.window_width, self.window_height = 640, 480
         self.setMinimumSize(self.window_width, self.window_height)
-        self.session_id = "sess" + str(random.randint(1, 1000))
+
+        """
+        TODO
+        insert new session USERNAME
+        SELECT ID
+        """
+        self.session_id = random.randint(1, 1000) #ID
 
 
     def mousePressEvent(self, event):
@@ -223,20 +222,18 @@ class Terminal(QWidget):
         elif command == self.editor.name + real_command:
 
             if real_command[:21] == 'change_color_terminal':
-                # otherFormat = QTextCharFormat()
-                # otherFormat.setForeground(QColor(command_list[1]))
                 str_text = "QPlainTextEdit {background-color: " + command_list[1] + "; color: " + command_list[2] + ";}"
                 self.editor.setStyleSheet(str_text)
-                # self.editor.setStyleSheet("QPlainTextEdit {background-color: black; color: red;}")
-                print('ahahah')
                 print(command_list)
             else:
                 sp = subprocess.Popen(real_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
                 out, err = sp.communicate()
                 if out:
                     self.editor.appendPlainText(str(out.decode('cp866')))
+                    # INSERT real_command out sess_id
                 if err:
                     self.editor.appendPlainText(str(err.decode('cp866')))
+                    # INSERT real_command err sess_id
         else:
             pass
         self.editor.ensureCursorVisible()
