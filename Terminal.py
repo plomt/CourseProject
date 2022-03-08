@@ -3,12 +3,14 @@ import os
 import getpass
 import socket
 from pathlib import Path
-import random
 import subprocess
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+
+from dbPashaCode.PythonPyQt.model import *
+from dbPashaCode.PythonPyQt.utils import *
 
 
 class PlainTextEdit(QPlainTextEdit):
@@ -141,7 +143,17 @@ class Terminal(QWidget):
         insert new session USERNAME
         SELECT ID
         """
-        self.session_id = random.randint(1, 1000) #ID
+        #---------------------------------------------------------------------------------------------------------------
+        name_user = os.getlogin()
+
+        table_seance = Seance(name_user=name_user)
+        table_seance.save()
+
+        session_id = Seance.select(fn.MAX(Seance.id_seance)).scalar()
+
+        # ---------------------------------------------------------------------------------------------------------------
+
+        self.session_id = "id:" + str(session_id) + ";user:" + name_user #ID
 
 
     def mousePressEvent(self, event):

@@ -7,7 +7,7 @@ from utils import (
     Configuration,
     manipulation_database
 )
-from model import *
+# from model import *
 
 CUR_PATH = os.getcwd()
 if sys.platform == 'win32':

@@ -27,7 +27,7 @@ class MyTerm(QQuickPaintedItem):
         self.heightChanged.connect(self.updateWidgetSize)
         self.fillColorChanged.connect(self.changeColor)
 
-        self._title = self.terminal.session_id
+        self._title = str(self.terminal.session_id)
         self.titleChanged.emit()
 
     @pyqtProperty(QColor)
