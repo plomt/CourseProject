@@ -54,7 +54,6 @@ class Configuration(object):
 
     def store_dict(self, d):
         for key, value in d.items():
-            # ≈сли значение уже есть, а новое None, то None записан не будет
             if not (key in self._d and value is None):
                 self._d[key] = value
 

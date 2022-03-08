@@ -5,9 +5,11 @@ import socket
 from pathlib import Path
 import random
 import subprocess
+
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+
 
 class PlainTextEdit(QPlainTextEdit):
     commandSignal = pyqtSignal(str)
