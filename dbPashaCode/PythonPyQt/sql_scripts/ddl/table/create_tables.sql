@@ -1,10 +1,12 @@
 CREATE TABLE IF NOT EXISTS project_pyqt.message (
-    sentence    text,
-    flag        varchar(255),
-    date_time   timestamp
+    command                  VARCHAR(255),
+    answer_to_command        VARCHAR(255),
+    flag                     VARCHAR(255),
+    date_time                TIMESTAMP,
+    name_seance              SERIAL REFERENCES seance (name_seance)
 );
 
 CREATE TABLE IF NOT EXISTS project_pyqt.seance (
-    name_seance varchar(255),
-    name_user   varchar(255)
+    name_seance SERIAL,
+    name_user   VARCHAR(255)
 );

@@ -23,6 +23,12 @@ else:
     SCHEMA_SCRIPTS = CUR_PATH + conf["PATHS"]["SCHEMA_PATH_LINUX"]
     TABLE_SCRIPTS = CUR_PATH + conf["PATHS"]["TABLE_PATH_LINUX"]
 
+postgres_conf = Configuration()["POSTGRES"]
+hostname = postgres_conf['host']
+login = postgres_conf['login']
+database = postgres_conf['database']
+password = postgres_conf['password']
+
 
 # os.system(r"python -m pwiz -e postgresql -u postgres -s project_pyqt -P 0000 postgres > C:\Users\pavel\PycharmProjects\PythonPyQt\model.py")
 
