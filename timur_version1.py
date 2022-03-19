@@ -13,6 +13,11 @@ from PyQt5.QtCore import QRect, Qt, pyqtSignal, QRegExp
 import subprocess
 import traceback
 
+from dbPashaCode.PythonPyQt.model import *
+from dbPashaCode.PythonPyQt.utils import *
+
+from datetime import datetime
+
 # lineBarColor = QColor(53, 53, 53)
 
 
@@ -123,6 +128,24 @@ class PlainTextEdit(QPlainTextEdit):
 
         e.accept()
 
+
+class Color_LineEdit(QLineEdit):
+    commandEnterPressed = pyqtSignal(str)
+    def __init__(self, parent=None, movable=False):
+        super().__init__(parent)
+        self.setPlaceholderText("Enter color. Example: black, cyan")
+
+    def keyPressEvent(self, e):
+        # cursor = self.textCursor()
+
+        if e.key() == 16777220:  # This is the ENTER key
+            self.commandEnterPressed.emit("True")
+
+            return
+        super().keyPressEvent(e)
+
+    
+
         
 class Terminal(QWidget):
     errorSignal = pyqtSignal(str)
@@ -136,8 +159,13 @@ class Terminal(QWidget):
         #     Qt.WindowStaysOnTopHint |
         #     Qt.FramelessWindowHint
         # )
-        self.id_seance = 'DEFAULT'
+        # self.toolbar = self.addToolBar('Toolbar')
+       
 
+        self.id_seance = 'DEFAULT'
+        self.id_login = 'DEFAULT'
+
+    
         self.movable = movable
         self.process = QProcess(self)
         self.editor = PlainTextEdit(self, self.movable)
@@ -145,21 +173,40 @@ class Terminal(QWidget):
         self.layout = QVBoxLayout()
         self.name = None
         self.highlighter = name_highlighter(self.editor.document(), str(getpass.getuser()), str(socket.gethostname()), str(os.getcwd()))
-        self.layout.addWidget(self.editor)
+        self.layout.addWidget(self.editor, 0)
+
+        self.saltLine = Color_LineEdit()
+        # self.saltLine.setPlaceholderText("Enter user name")
+        # self.saltLine.keyPressEvent()
+        self.saltLine.commandEnterPressed.connect(self.push_color_change_scene)
+        self.layout.addWidget(self.saltLine, 0.5)
+
+
         self.editor.commandSignal.connect(self.handle)
         self.editor.commandZPressed.connect(self.handle)
         self.process.readyReadStandardError.connect(self.onReadyReadStandardError)
         self.process.readyReadStandardOutput.connect(self.onReadyReadStandardOutput)
+
+        # self.push_change.clicked.connect(self.push_change_scene)
+
+        # self.toolBar = QToolBar()
+        # self.layout.addWidget(self.toolBar)
+
         self.setLayout(self.layout)
         self.window_width, self.window_height = 1000, 600
         self.setMinimumSize(self.window_width, self.window_height)
 
-        # self.setStyleSheet("QWidget {background-color:invisible;}")
-        # self.show()
-        #self.showMaximized() # comment this if you want to embed this widget
 
-    def get_id_seance(self):
-        self.editor.appendPlainText(str(self.id_seance))
+    def push_color_change_scene(self):
+        str_colors = self.saltLine.text().split(', ')
+        back_color = str_colors[0]
+        color_of_text = str_colors[1]
+        str_text = "QPlainTextEdit {background-color: " + back_color + "; color: " + color_of_text + ";}"
+        self.editor.setStyleSheet(str_text)
+        pass
+
+    def get_id_login(self):
+        self.editor.appendPlainText(str(self.id_login))
 
     def center(self):
         qr = self.frameGeometry()
@@ -250,17 +297,43 @@ class Terminal(QWidget):
                 str_text = "QPlainTextEdit {background-color: " + command_list[1] + "; color: " + command_list[2] + ";}"
                 self.editor.setStyleSheet(str_text)
                 # self.editor.setStyleSheet("QPlainTextEdit {background-color: black; color: red;}")
-                print('ahahah')
-                print(command_list)
+                # print('ahahah')
+                # print(command_list)
                 
 
-            else:
+            else:#команда
                 sp = subprocess.Popen(real_command, stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
                 out, err = sp.communicate()
+
+                command = real_command
+                date_time = str(datetime.today())
+                name_user = self.id_login
+                session_id = str(self.id_seance)
+                # print(name_user, session_id)
+                # print('тип ', type(name_user), type(session_id))
+
                 if out:
-                    self.get_id_seance()
+                    #---------------------------------------------------------------------------------------------------------------
+                    
+                    answer_to_command = str(out.decode('cp866'))
+                    flag = True
+                    table_message = Message(command=command, answer_to_command=answer_to_command, flag=flag, date_time=date_time, id_seance=session_id)
+                    table_message.save()
+                    # self.session_id = "id:" + str(session_id) + ";user:" + name_user #ID
+                    # ---------------------------------------------------------------------------------------------------------------
+
+                    # self.get_id_login()
                     self.editor.appendPlainText(str(out.decode('cp866')))
                 if err:
+                    #---------------------------------------------------------------------------------------------------------------
+                    
+                    answer_to_command = str(err.decode('cp866'))
+                    flag = False
+                    table_message = Message(command=command, answer_to_command=answer_to_command, flag=flag, date_time=date_time, id_seance=session_id)
+                    table_message.save()
+                    # self.session_id = "id:" + str(session_id) + ";user:" + name_user #ID
+                    # ---------------------------------------------------------------------------------------------------------------
+
                     self.editor.appendPlainText(str(err.decode('cp866')))
 
         
@@ -270,7 +343,7 @@ class Terminal(QWidget):
             pass # When the user does a command like ls and then presses enter then it wont read the line where the cursor is on as a command
 
     def change_user(self):
-        self.setWindowTitle(self.id_seance)
+        self.setWindowTitle(f"{self.id_seance}_{self.id_login}")
 
 
 class name_highlighter(QSyntaxHighlighter):
@@ -348,41 +421,73 @@ class name_highlighter(QSyntaxHighlighter):
 class seance_window(QWidget):
     def __init__(self):
         super().__init__()
+        # self.id_deance
+        self.id_seance = '-1'
+        self.login = 'DEFAULT'
 
         self.text = QTextBrowser()
 
-        arr = ["echo 'alalal' ", "dir", "path"]
-      
+        # arr = ["echo 'alalal' ", "dir", "path"]
+        # set_text()
+        str_text = "QTextBrowser {background-color: " + 'black' + "; color: " + 'cyan' + ";}"
+        self.setStyleSheet(str_text)
+         
+        str_text = "QWidget { background-color: black; color: cyan; }"
+        self.setStyleSheet(str_text)
+
+
+        grid = QVBoxLayout()
+        self.setLayout(grid)
+        grid.addWidget(self.text, 0)
+
+        self.push_b = QPushButton("&delete", self)
+        grid.addWidget(self.push_b, 0)
+
+        self.push_b.clicked.connect(self.push_delete)
+
+
+        self.setGeometry(500, 500, 500, 500)
+        self.setWindowTitle('Simple menu')
+
+    def push_delete(self):
+        # удаляем данные из базы
+        pass
+        
+
+    def set_id_and_login(self, id, login):
+        self.id_seance = id
+        self.login = login
+
+    def set_text(self):
+        # arr = [self.id_seance, self.login]
+        # str_arr = '\n'.join(arr)
+
+        query = Message.select().where(Message.id_seance == int(self.id_seance))
+        print(query)
+        arr = [message.command + ' - ' + message.answer_to_command for message in query]
+        print(arr)
 
         str_arr = '\n'.join(arr)
+        print(str_arr)
 
-
-        # self.text.setPlaceholderText("Enter user name")
         self.text.setText(str_arr)
 
-        grid = QGridLayout()
-        self.setLayout(grid)
-        grid.addWidget(self.text, 0, 1)
 
 
-        # impAct = QAction( )
+class Login_LineEdit(QLineEdit):
+    commandEnterPressed = pyqtSignal(str)
+    def __init__(self, parent=None, movable=False):
+        super().__init__(parent)
+        self.setPlaceholderText("Enter the user name")
 
+    def keyPressEvent(self, e):
+        # cursor = self.textCursor()
 
-        self.setGeometry(300, 300, 300, 200)
-        self.setWindowTitle('Simple menu')
-        self.show()
+        if e.key() == 16777220:  # This is the ENTER key
+            self.commandEnterPressed.emit("True")
 
-
-
-    def change_window(self):
-        self.user_label = QLabel()
-
-        self.user_label.setText(f"lol {self.id_seance}")
-
-    def set_id_seance(self, id_scene):
-        self.id_seance = id_scene
-        self.change_window
-
+            return
+        super().keyPressEvent(e)
 
 
 
@@ -392,20 +497,21 @@ class Example(QMainWindow):
     # widget = Terminal(True)
     def __init__(self):
         super().__init__()
+        self.setStyleSheet("background-color: white;")
+
+        str_text = "QWidget { background-color: black; color: cyan; }"
+        self.setStyleSheet(str_text)
         
         self.Login = 'DEFAULT'
-        self.push_login = QPushButton("&login", self)
+        self.seance = '-1'
 
-        # self.leftLayout.addWidget(self.text_edit, 0, 0)
-        self.saltLine = QLineEdit()
+        self.saltLine = Login_LineEdit()
         self.saltLine.setPlaceholderText("Enter user name")
-        self.user_label = QLabel()
+        self.saltLine.commandEnterPressed.connect(self.push_login_scene)
 
-        self.user_label.setText(self.Login)
 
-        self.push_login.clicked.connect(self.push_login_scene)
 
-        grid = QGridLayout()
+        grid = QVBoxLayout()#QGridLayout()
         widget = QWidget()
         widget.setLayout(grid)
 
@@ -413,78 +519,96 @@ class Example(QMainWindow):
         self.listWidget = QListWidget(self)
 
         #ПАША ДАЙ МНЕ СПИСОК СЕАНСОВ ИЗ БД
-        arr = ['c++', 'python', 'java', 'scala']
+
+        query = Seance.select()
+        print([(seance.id_seance, seance.name_user) for seance in query])
+
+        arr = [str(seance.id_seance) + '_' + seance.name_user for seance in query]
 
         for i in arr:
             self.listWidget.addItem(i) 
 
         #add your widgets
         self.setCentralWidget(widget)
-        grid.addWidget(self.listWidget, 0, 1)
-        grid.addWidget(self.user_label, 0, 0)
-        grid.addWidget(self.saltLine, 1, 0)
-        grid.addWidget(self.push_login, 1, 1)
+        grid.addWidget(self.listWidget, 0)
+        grid.addWidget(self.saltLine, 1)
         self.listWidget.itemClicked.connect(self.item_clicked)
         
-
-        exitAct = QAction(QIcon('exit.png'), '&Exit', self)
-        exitAct.setShortcut('Ctrl+Q')
-        exitAct.setStatusTip('Exit application')
         
 
         self.toolbar = self.addToolBar('Toolbar')
-        self.widgetAction = QWidgetAction(self.toolbar)
-        self.menu = QMenu(self.toolbar)
-
-        self.action1 = self.menu.addAction('Exit')
-        self.action2 = self.menu.addAction('Start terminal')
-
-        self.widgetAction.setText('menu')
-        self.widgetAction.setMenu(self.menu)
-        self.toolbar.addAction(self.widgetAction)
         
-        #Конекты:
-        exitAct.triggered.connect(qApp.quit)
-        self.action1.triggered.connect(self.onAction1)
-        self.action2.triggered.connect(self.onAction2)
-        self.widgetAction.triggered.connect(self.triggered)
+        about_us_Action = QAction('About Us', self)
+        about_us_Action.triggered.connect(self.about_us)
+        
+        self.toolbar.addAction(about_us_Action)
+
+        refresh = QAction('Refresh', self)
+        refresh.triggered.connect(self.refresh)
+        
+        self.toolbar.addAction(refresh)
+        
 
 
-        self.setGeometry(300, 300, 300, 200)
+        self.setGeometry(500, 500, 500, 500)
         self.setWindowTitle('Simple menu')
         self.show()
 
-    def item_clicked(self):
-        self.dialog = seance_window()
-        self.dialog.show()
+    def about_us(self):
+        print('Делали: Верендеев Илья, Кондаков Александр, Ломтев Павел, Тухватуллин Тимур')
+        self.listWidget.clear()
+        self.listWidget.addItem('Делали: \nВерендеев Илья, \nКондаков Александр, \nЛомтев Павел, \nТухватуллин Тимур \nНажмите REFRESH для обновления')
+
+    def refresh(self):
+        query = Seance.select()
+        print([(seance.id_seance, seance.name_user) for seance in query])
+
+        arr = [str(seance.id_seance) + '_' + seance.name_user for seance in query]
+        self.listWidget.clear()
+
+        for i in arr:
+            self.listWidget.addItem(i) 
+
+    def item_clicked(self, item):
+        self.dialog_seance = seance_window()
+        id, user = item.text().split('_')
+        self.dialog_seance.set_id_and_login(id, user)
+        self.dialog_seance.show()
+        self.dialog_seance.set_text()
 
     
     @pyqtSlot()
     def push_login_scene(self):
-        self.saltLine.setPlaceholderText("e.g. ahahahah")
+        # self.saltLine.setPlaceholderText("e.g. ahahahah")
         print('PyQt5 button click')
         print(self.saltLine.text())
         
         self.Login = self.saltLine.text()
+        
+        #---------------------------------------------------------------------------------------------------------------
+        name_user = self.Login
 
-        self.user_label.setText(self.Login)
+        table_seance = Seance(name_user=name_user)
+        table_seance.save()
 
-    def triggered(self, e):
-        if self.widgetAction.text() == 'onAction1':
-            self.action1.trigger()
-        elif self.widgetAction.text() == 'onAction2':
-            self.action2.trigger()
+        # ---------------------------------------------------------------------------------------------------------------
+        self.seance = Seance.select(fn.MAX(Seance.id_seance)).scalar()
+        if self.seance is None:
+            self.seance = '1'
 
-    def onAction1(self):
-        self.close()
-
-    def onAction2(self):
         self.dialog = Terminal()
-        self.dialog.id_seance = self.Login
+        self.dialog.id_login = self.Login
+        self.dialog.id_seance = self.seance
         self.dialog.change_user()
         self.dialog.show()
-        
-        # self.widgetAction.setText('onAction2')
+
+
+
+
+
+    # def onAction1(self):
+    #     self.close()
+
 
 
 
@@ -500,10 +624,3 @@ def main():
 if __name__ == '__main__':
     main()
     
-# if __name__ == "__main__":
-#     app = QApplication(sys.argv)
-#     widget = Terminal(True)
-#     widget.setWindowTitle('Simple')
-    
-#     widget.show()    
-#     sys.exit(app.exec_())

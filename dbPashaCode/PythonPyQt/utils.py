@@ -30,6 +30,7 @@ def timing(f):
 
     return wrap
 
+# os.environ['CONFIG_PATH'] = r'C:\Users\argetlam\Desktop\t\CourseProject\dbPashaCode\PythonPyQt\settings\settings.yml'
 
 class Configuration(object):
     _instance = None
