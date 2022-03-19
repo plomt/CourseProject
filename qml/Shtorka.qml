@@ -4,9 +4,9 @@ import QtQuick 2.6
 
 Rectangle {
     id:comboBox
-    property variant items: ["История", "Параметры"]
+    property variant items: ["Сеансы", "Параметры"]
     property alias selectedIndex: listView.currentIndex;
-    signal comboClicked;
+    signal comboClicked(var str);
     z: 100;
     smooth:true;
 
@@ -28,7 +28,7 @@ Rectangle {
             delegate: Item{
                 width:dropDown.width;
                 height: 30;
-
+                property variant myData: modelData
                 Text {
                     text: modelData
                     anchors.top: parent.top;
@@ -41,7 +41,7 @@ Rectangle {
                     hoverEnabled: true
                     onClicked: {
                         comboBox.state = ""
-                        comboBox.comboClicked();
+                        comboBox.comboClicked(listView.currentItem.myData);
                     }
                     onEntered: {
                         listView.currentIndex = index;
@@ -69,4 +69,14 @@ Rectangle {
     transitions: Transition {
         NumberAnimation { target: dropDown; properties: "height"; easing.type: Easing.OutExpo; duration: 1000 }
     }
+    Component.onCompleted: {comboClicked.connect(show_window)}
+
+    function show_window(str){
+        if (str === "Сеансы"){
+            var component = Qt.createComponent("History.qml")
+            var window    = component.createObject(null)
+            window.show()
+        }
     }
+
+}

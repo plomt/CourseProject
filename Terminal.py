@@ -9,6 +9,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
+from datetime import datetime
+
 from dbPashaCode.PythonPyQt.model import *
 from dbPashaCode.PythonPyQt.utils import *
 
@@ -146,7 +148,7 @@ class Terminal(QWidget):
         table_seance.save()
 
         session_id = Seance.select(fn.MAX(Seance.id_seance)).scalar()
-
+        self.id_seance = session_id
         # ---------------------------------------------------------------------------------------------------------------
 
         self.session_id = "Seance " + str(session_id) + " " + str(datetime.now().strftime("%H:%M")) + " "
@@ -240,7 +242,7 @@ class Terminal(QWidget):
 
                 command = real_command
                 date_time = str(datetime.today())
-                name_user = self.id_login
+                #name_user = self.id_login
                 session_id = str(self.id_seance)
                 # print(name_user, session_id)
                 # print('тип ', type(name_user), type(session_id))
