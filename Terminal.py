@@ -138,11 +138,7 @@ class Terminal(QWidget):
         self.window_width, self.window_height = 640, 480
         self.setMinimumSize(self.window_width, self.window_height)
 
-        """
-        TODO
-        insert new session USERNAME
-        SELECT ID
-        """
+
         #---------------------------------------------------------------------------------------------------------------
         name_user = os.getlogin()
 
@@ -153,7 +149,7 @@ class Terminal(QWidget):
 
         # ---------------------------------------------------------------------------------------------------------------
 
-        self.session_id = "id:" + str(session_id) + ";user:" + name_user #ID
+        self.session_id = "Seance " + str(session_id) + " " + str(datetime.now().strftime("%H:%M")) + " "
 
 
     def mousePressEvent(self, event):
@@ -237,17 +233,42 @@ class Terminal(QWidget):
                 str_text = "QPlainTextEdit {background-color: " + command_list[1] + "; color: " + command_list[2] + ";}"
                 self.editor.setStyleSheet(str_text)
                 print(command_list)
-            else:
+
+            else:  # команда
                 sp = subprocess.Popen(real_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
                 out, err = sp.communicate()
+
+                command = real_command
+                date_time = str(datetime.today())
+                name_user = self.id_login
+                session_id = str(self.id_seance)
+                # print(name_user, session_id)
+                # print('тип ', type(name_user), type(session_id))
+
                 if out:
+                    # ---------------------------------------------------------------------------------------------------------------
+
+                    answer_to_command = str(out.decode('cp866'))
+                    flag = True
+                    table_message = Message(command=command, answer_to_command=answer_to_command, flag=flag,
+                                            date_time=date_time, id_seance=session_id)
+                    table_message.save()
+                    # self.session_id = "id:" + str(session_id) + ";user:" + name_user #ID
+                    # ---------------------------------------------------------------------------------------------------------------
+
+                    # self.get_id_login()
                     self.editor.appendPlainText(str(out.decode('cp866')))
-                    # INSERT real_command out sess_id
                 if err:
-                    self.editor.appendPlainText(str(err.decode('cp866')))
-                    # INSERT real_command err sess_id
+                    # ---------------------------------------------------------------------------------------------------------------
+
+                    answer_to_command = str(err.decode('cp866'))
+                    flag = False
+                    table_message = Message(command=command, answer_to_command=answer_to_command, flag=flag,
+                                            date_time=date_time, id_seance=session_id)
+                    table_message.save()
         else:
             pass
+
         self.editor.ensureCursorVisible()
 
 class name_highlighter(QSyntaxHighlighter):
