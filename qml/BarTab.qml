@@ -31,7 +31,10 @@ Rectangle{
                                if (dropdown.state === "dropDown")
                                    dropdown.state = "";
                                else if (window.width - newTab.x - params.width - 14 > delta)
-                                        tabView.createTab(item_component);
+                                        {
+                                            tabView.createTab(item_component);
+                                            seanceModel.update("1")
+                                        }
                            }
                            onEntered: {
                                parent.color = "#2b2625"

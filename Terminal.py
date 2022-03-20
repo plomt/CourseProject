@@ -268,6 +268,7 @@ class Terminal(QWidget):
                     table_message = Message(command=command, answer_to_command=answer_to_command, flag=flag,
                                             date_time=date_time, id_seance=session_id)
                     table_message.save()
+                    self.editor.appendPlainText(str(err.decode('cp866')))
         else:
             pass
 
