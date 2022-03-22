@@ -123,6 +123,7 @@ class tabCreator(QObject):
     addTab = pyqtSignal()
     newWin = pyqtSignal()
     changeTab = pyqtSignal(str)
+    newColors = pyqtSignal( str)
 
     cur_id = ""
     def __init__(self, parent=None):
@@ -146,3 +147,7 @@ class tabCreator(QObject):
     @pyqtSlot(str)
     def switchTab(self, id):
         self.changeTab.emit(id)
+
+    @pyqtSlot( str)
+    def changeColors(self,text_col):
+        self.newColors.emit( text_col)

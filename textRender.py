@@ -25,18 +25,34 @@ class MyTerm(QQuickPaintedItem):
         self.editor.installEventFilter(self)
         self.widthChanged.connect(self.updateWidgetSize)
         self.heightChanged.connect(self.updateWidgetSize)
-        self.fillColorChanged.connect(self.changeColor)
+        #self.fillColorChanged.connect(self.changeColor)
 
         self._title = str(self.terminal.session_id)
         self.titleChanged.emit()
+        self.bck_clr = "#212121"
 
     @pyqtProperty(QColor)
-    def color(self):
-        return self.fillColor()
+    def back_color(self):
+        return QColor(self.bck_clr)
 
-    @color.setter
-    def color(self, color):
-        self.setFillColor(color)
+    @back_color.setter
+    def back_color(self, color):
+        p = self.editor.palette()
+        self.bck_clr = color.name()
+        p.setColor(QPalette.Active, QPalette.Base, color)
+        self.editor.setPalette(p)
+        self.update()
+
+    @pyqtProperty(QColor)
+    def text_color(self):
+        p = self.editor.palette.color(QPalette.WindowText)
+        return p
+
+    @text_color.setter
+    def text_color(self, color):
+        str_text = "QPlainTextEdit {color: " + color.name() + ";}"
+        self.editor.setStyleSheet(str_text)
+        self.update()
 
     @pyqtProperty(str, notify=titleChanged)
     def title(self):

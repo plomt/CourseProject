@@ -24,7 +24,8 @@ ApplicationWindow {
                 id:terminal
                 anchors.fill: parent
                 focus:true
-                color: "#212121"
+                back_color: "#212121"
+                text_color: "white"
             }
         }
         Component.onCompleted: {

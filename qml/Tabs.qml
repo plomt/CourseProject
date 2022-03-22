@@ -149,5 +149,11 @@ TabView {
                 }
             }
         }
+        function onNewColors( text_color){
+            for (var i = 0; i < tabView.count; ++i) {
+                var obj = tabView.getTab(i).item
+                obj.text_color = text_color;
+            }
+        }
     }
 }
