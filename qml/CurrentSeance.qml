@@ -8,7 +8,7 @@ ApplicationWindow {
     id: current_seance
     minimumWidth: 320
     minimumHeight: 240
-    width:  500
+    width:  640
     height: 500
     title: qsTr("Монитор консоли")
     TableView{
@@ -34,6 +34,7 @@ ApplicationWindow {
             syncView: tableView
             anchors.left: tableView.left
      }
+
      property string back_color: "#212121"
      property string text_color:  "white"
      Row{
@@ -55,6 +56,10 @@ ApplicationWindow {
         Button {
             text: "Применить"
             onClicked: {tabCreator.changeColors(text_color)}
+        }
+        Button{
+        text: "Обновить"
+        onClicked: {seanceTable.update(window.currentSeanceId)}
         }
     }
 

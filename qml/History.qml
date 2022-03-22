@@ -6,7 +6,7 @@ ApplicationWindow {
     id: his_win
     minimumWidth: 320
     minimumHeight: 240
-    width: 680
+    width: 800
     height: 480
     title: qsTr("История сеансов")
     header:ToolBar{
@@ -24,7 +24,7 @@ ApplicationWindow {
     width:parent.width
     anchors.bottom: parent.bottom
     anchors.top:tools.bottom
-        ScrollView{
+    ScrollView{
             id:seances
             width: 140
             height: parent.height
@@ -98,7 +98,7 @@ ApplicationWindow {
         ScrollView{
         id:view
         width: parent.width - seances.width
-        height: parent.height
+        height: rows.height
         clip:true
         property string currentId:""
         TableView{
