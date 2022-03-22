@@ -5,16 +5,17 @@ import QtQuick.Controls.Styles 1.2
 TabView {
     id: tabView
 
-
     property Item activeTabItem
     property Component item_component
+
     onCurrentIndexChanged: {
            fixupVisibility()
-       }
+    }
     function fixupVisibility() {
           var child = tabView.getTab(currentIndex)
           activeTabItem = child
           child.forceActiveFocus()
+          window.currentSeanceId = child.item.title.split(' ')[1]
     }
     function _updateTabTitle() {
             for (var i = 0; i < tabView.count; ++i) {
@@ -25,6 +26,7 @@ TabView {
                 }
             }
     }
+
     function createTab(comp){
         if (comp.status != Component.Ready)
             return
@@ -102,15 +104,50 @@ TabView {
                                 main_style.plate_width = main_style.plate_width - (styleData.totalWidth - main_style.plate_width);
                             }
                             else{
+                                tabCreator.changeState("False");
                                 window.close();
+
                             }
                         }
                     }
+                }
+                Connections{
+                    target: seanceModel
+                    function onSeanceDeleted(idSeance) {
+                        var seance = idSeance
+                        var obj = tabView.getTab(styleData.index).item.title
+                        var cur_id = obj.split(' ')[1]
+                        if (cur_id == seance){
+                            if (tabView.count > 1)
+                            {
+                                tabView.removeTab(styleData.index);
+                                main_style.sum_width = main_style.sum_width - (styleData.totalWidth - main_style.plate_width);
+                                main_style.plate_width = main_style.plate_width - (styleData.totalWidth - main_style.plate_width);
+                            }else{
+                                tabCreator.changeState("False");
+                                window.close();
+                            }
+                        }
+                     }
                 }
             }
             tabBar: BarTab{
                 property var backColor: "gray"
             }
 
+    }
+    Connections{
+        target:tabCreator
+        function onChangeTab(idSeance){
+            for (var i = 0; i < tabView.count; ++i) {
+                var obj = tabView.getTab(i).item.title
+                var cur_id = obj.split(' ')[1]
+                if (cur_id === idSeance) {
+                    tabView.currentIndex = i;
+                    fixupVisibility();
+                    return;
+                }
+            }
+        }
     }
 }

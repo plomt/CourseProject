@@ -75,5 +75,16 @@ Rectangle{
                            }
                        }
                    }
+                   Connections{
+                        target: tabCreator
+                        function onAddTab() {
+                            var delta = main_style.sum_width - main_style.plate_width;
+                                  if (window.width - newTab.x - params.width - 14 > delta)
+                                  {
+                                    tabView.createTab(item_component);
+                                    seanceModel.update("1")
+                                  }
+                        }
+                   }
           }
 }

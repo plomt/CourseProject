@@ -8,10 +8,11 @@ ApplicationWindow {
     id: window
     width: 1000
     height: 480
-    title: qsTr("Terminal")
+    title: qsTr("Эмулятор терминала")
     visible: true
     minimumWidth: 320
     minimumHeight: 240
+    property string currentSeanceId:""
 
     Tabs {
         id: tabView
@@ -29,7 +30,6 @@ ApplicationWindow {
         Component.onCompleted: {
             item_component = terminalScreenComponent
             createTab(terminalScreenComponent);
-
         }
     }
 }

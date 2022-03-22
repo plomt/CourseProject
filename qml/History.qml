@@ -1,28 +1,41 @@
 import QtQuick  2.15
-import QtQuick.Window 2.1 // needed for the Window component
+import QtQuick.Window 2.1
 import QtQuick.Controls 2.14
-Window {
 
+ApplicationWindow {
     id: his_win
     minimumWidth: 320
     minimumHeight: 240
-    width: 640
+    width: 680
     height: 480
-    title: qsTr("History")
+    title: qsTr("История сеансов")
+    header:ToolBar{
+        id: tools
+        width:140
+        ToolButton {
+            text: qsTr("+")
+            anchors.centerIn:parent
+            onClicked: {tabCreator.newSeance();}
+         }
+    }
     Row{
-    anchors.fill: parent
+    id: rows
+    anchors.fill:parent
+    width:parent.width
+    anchors.bottom: parent.bottom
+    anchors.top:tools.bottom
         ScrollView{
             id:seances
-            width: 100
+            width: 140
             height: parent.height
         ListView{
             id:list
             anchors.fill:parent
             model: seanceModel
-            highlight: Rectangle{y:deleg.y/2 + 100;width:deleg.width; height:15;color: "#8f9193";radius: 4 }
+            highlight: Rectangle{ height:15;color: "#8f9193";radius: 4 }
             delegate: Item{
                     id:deleg
-                    width:parent.width
+                    width:seances.width
                     height: 20
                     property variant myData: pyLabel
                     Text {
@@ -31,14 +44,38 @@ Window {
                         anchors.margins: 5;
                     }
                     MouseArea {
-                        anchors.fill: parent
+                        width: parent.width - 30
+                        height:parent.height
+                        anchors.left:parent.left
                         hoverEnabled: true
                         onClicked: {
                             showTable(pyLabel);
+                            tabCreator.switchTab(pyLabel.split(' ')[0]);
                         }
                         onEntered: {
                             list.currentIndex = index;
                         }
+                    }
+                    Rectangle {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.rightMargin: 4
+                    implicitWidth: 14
+                    implicitHeight: 14
+                    radius: width/2
+                    color: control.hovered ? "#eee": "#ccc"
+                    border.color: "gray"
+                    Text {text: "X" ; anchors.centerIn: parent ; color: "gray"}
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            deleteSeance(pyLabel);
+                        }
+                        onEntered: {
+                            list.currentIndex = index;
+                        }
+                    }
                     }
                     Rectangle {
                                 id:bottom_line
@@ -59,9 +96,11 @@ Window {
         }
         spacing:10
         ScrollView{
+        id:view
         width: parent.width - seances.width
         height: parent.height
         clip:true
+        property string currentId:""
         TableView{
             id:table
             model:seanceTable
@@ -87,5 +126,24 @@ Window {
         var sp = str.split(' ')
         seanceTable.update(sp[0]);
         table.model = seanceTable;
+        view.currentId = sp[0]
+    }
+    function deleteSeance(str){
+
+        var SeanceId = str.split(' ')[0];
+        seanceModel.delete(str);
+        if (SeanceId == view.currentId)
+            seanceTable.clearTable()
+    }
+    Connections{
+        target:tabCreator
+        function onNewWin() {
+                 var component = Qt.createComponent("base.qml")
+                 var window    = component.createObject(null)
+                 tabCreator.changeState("True")
+                 seanceModel.update("complete")
+                 window.show()
+
+            }
     }
 }

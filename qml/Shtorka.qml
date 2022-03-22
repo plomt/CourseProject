@@ -4,7 +4,7 @@ import QtQuick 2.6
 
 Rectangle {
     id:comboBox
-    property variant items: ["Сеансы", "Параметры"]
+    property variant items: ["Сеансы", "Монитор консоли", "Новый сеанс"]
     property alias selectedIndex: listView.currentIndex;
     signal comboClicked(var str);
     z: 100;
@@ -77,6 +77,13 @@ Rectangle {
             var window    = component.createObject(null)
             window.show()
         }
+        if (str === "Новый сеанс"){
+            tabCreator.newSeance()
+        }
+        if (str === "Монитор консоли"){
+            var component = Qt.createComponent("CurrentSeance.qml")
+            var window  = component.createObject(window)
+            window.show()
+        }
     }
-
 }
