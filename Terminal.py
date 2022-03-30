@@ -181,7 +181,6 @@ class Terminal(QWidget):
 
     def handle(self, command):
 
-        """Split a command into list so command echo hi would appear as ['echo', 'hi']"""
         real_command = command.replace(self.editor.name, "")
 
         if command == "True":
@@ -192,7 +191,6 @@ class Terminal(QWidget):
             command_list = real_command.split()
         else:
             command_list = None
-        """Now we start implementing some commands"""
         if real_command == "clear":
             self.editor.clear()
         elif command_list is not None and "&&" in command_list:
@@ -282,7 +280,6 @@ class name_highlighter(QSyntaxHighlighter):
         self.name = user_name
         self.name2 = host_name
         self.cwd = cwd
-        # print(self.cwd)
         first_list = []
         most_used = ["cd", "clear", "history", "ls", "man", "pwd", "what", "type",
                      "strace", "ltrace", "gdb", "cat", "chmod", "cp", "chown", "find", "grep", "locate", "mkdir",
